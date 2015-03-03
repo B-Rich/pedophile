@@ -1,15 +1,17 @@
 require 'yaml'
+require 'pathname'
 
 module Pedophile
   class OfflineTree
     TMP_STRUCTURE_PATH = File.absolute_path(File.join(Wget::TMP_PATH, "files.yaml"))
+    FIX_RELATIVE_PATH = true
 
     def initialize(downloader)
       @downloader = downloader
       @files = Array.new
     end
 
-    attr_reader :downloader, :path, :files
+    attr_reader :downloader, :files
 
     # Desctructive part
     def after_process
@@ -18,9 +20,13 @@ module Pedophile
       rename_files
     end
 
+    def path
+      @path ||= self.downloader.wget.offline_path
+      @path
+    end
+
     def analyze
       # because I don't want to read all wget options...
-      @path = self.downloader.wget.offline_path
       glob_path = "#{path}/**/**"
       puts "offline path #{path.to_s.cyan}"
 
@@ -175,6 +181,16 @@ module Pedophile
           file_path = f[:path].clone
 
           puts " open #{file_path.to_s.red}"
+
+          # relative path fix
+          if check_paths and FIX_RELATIVE_PATH
+            relative_file_path = File.dirname(file_path).gsub(self.path, "")
+            relative_file_path.gsub!(/^\//, '')
+
+            first = Pathname.new(relative_file_path)
+            second = Pathname.new(to)
+            to = second.relative_path_from(first)
+          end
 
           exists = File.exists?(file_path)
           if exists
