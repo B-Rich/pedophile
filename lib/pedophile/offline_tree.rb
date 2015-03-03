@@ -18,7 +18,7 @@ module Pedophile
       rename_files
     end
 
-    def process
+    def analyze
       # because I don't want to read all wget options...
       @path = self.downloader.wget.offline_path
       glob_path = "#{path}/**/**"
@@ -42,26 +42,26 @@ module Pedophile
         h[:mime] = mime
 
         if mime == 'text/html' or mime == 'text/plain'
-          h[:inside] = process_file(item)
+          h[:inside] = analyze_file(item)
         end
 
         @files << h
       end
 
-      save_processed
+      save_analyzed
     end
 
-    def save_processed
+    def save_analyzed
       f = File.new(TMP_STRUCTURE_PATH, "w")
       f.puts @files.to_yaml
       f.close
     end
 
-    def load_processed
+    def load_analyzed
       @files = YAML.load_file(TMP_STRUCTURE_PATH)
     end
 
-    def process_file(file)
+    def analyze_file(file)
       s = File.read(file)
 
       possible_paths_regexp = /"([^"]+)"/
@@ -88,93 +88,6 @@ module Pedophile
       paths
     end
 
-    def remove_bad_suffix
-      @files.each do |f|
-        old_file = f[:path]
-        new_file = old_file.gsub(/\?body=1/, '')
-
-        if not new_file == old_file
-          rename_file(old_file, new_file)
-        end
-      end
-
-      perform_massive_html_change("%3Fbody=1", "")
-    end
-
-    def rename_files
-      @files.each do |f|
-        old_file = f[:path]
-        new_file = old_file.gsub(/[^0-9A-Za-z.\-\/:]/, '_')
-
-        if not new_file == old_file
-          rename_file(old_file, new_file)
-        end
-      end
-    end
-
-    def rename_file(old_file, new_file)
-      # old_file - starting file name
-      # new_file - rename to it
-      base_path = self.downloader.wget.offline_path
-
-      old_file_path = old_file.clone
-
-      old_file.gsub!(base_path, '')
-      new_file.gsub!(base_path, '')
-
-      # ignore slashes
-      old_file.gsub!(/^\//, '')
-      new_file.gsub!(/^\//, '')
-
-      #puts base_path, old_file_path, old_file, new_file
-
-      perform_massive_html_change(old_file, new_file)
-
-      # to get along with paths
-      new_file_path = old_file_path.gsub(old_file, new_file)
-      File.rename(old_file_path, new_file_path)
-      # rename in tree
-      @files.each do |f|
-        #f[:path] = new_file_path if f[:path] == old_file_path
-        f[:path].gsub!(old_file, new_file)
-      end
-
-      puts "renamed '#{old_file} to #{new_file}"
-    end
-
-    def perform_massive_html_change(from, to)
-      puts "file content change string #{from.to_s.green} to #{to.to_s.blue}"
-
-      # puts @files.collect{|f| f[:path]}.join("\n")
-
-
-      @files.each do |f|
-        # must be proper mime before, so its ok condition
-        if f[:inside]
-          puts " open #{f[:path].to_s.red}"
-          exists = File.exists?(f[:path])
-
-          if exists
-            j = File.open(f[:path])
-            s = j.read
-            j.close
-
-            s.gsub!(from, to)
-
-            #j = File.open(f[:path], "w")
-            #j.puts(s)
-            #j.close
-
-            f[:inside].each do |fi|
-              fi[:path].gsub!(from, to)
-            end
-
-            puts " done #{f[:path].to_s.red}"
-          end
-        end
-      end
-    end
-
     # TODO  - check if this string is correct unix path
     def is_path_ok?(pp)
       # pp =~ /\A(?:[0-9a-zA-Z\_\-]+\/?)+\z/
@@ -184,6 +97,106 @@ module Pedophile
     # TODO
     def should_add_path?(h)
       return h[:is_file]
+    end
+
+    def base_path
+      @base_path ||= self.downloader.wget.offline_path
+      @base_path
+    end
+
+    # PROCESSING
+    def process_bad_suffix
+      @files.each do |f|
+        old_file = f[:path]
+        new_file = old_file.gsub(/\?body=1/, '')
+
+        if not new_file == old_file
+          process_rename_file(old_file, new_file)
+        end
+      end
+
+      process_massive_gsub("%3Fbody=1", "")
+    end
+
+    def process_bad_filenames
+      @files.each do |f|
+        old_file = f[:path]
+        new_file = old_file.gsub(/[^0-9A-Za-z.\-\/:]/, '_')
+
+        if not new_file == old_file
+          process_rename_file(old_file, new_file)
+        end
+      end
+
+    end
+
+    def process_rename_file(old_file_path, new_file_path)
+      puts "rename from #{old_file_path.to_s.blue} to #{new_file_path.to_s.green}"
+
+      # clone to not allow modify of @files
+      old_file = old_file_path.clone
+      new_file = new_file_path.clone
+      # this will be with full path
+      old_file_with_path = old_file_path.clone
+
+      old_file.gsub!(base_path, '')
+      new_file.gsub!(base_path, '')
+
+      # ignore slashes
+      old_file.gsub!(/^\//, '')
+      new_file.gsub!(/^\//, '')
+
+      # 1. rename 1 file
+      new_file_path = old_file_with_path.gsub(old_file, new_file)
+      File.rename(old_file_with_path, new_file_path)
+
+      # 2. rename in @files
+      @files.each do |f|
+        puts "*"*100, f[:path], old_file_with_path
+        if f[:path] == old_file_with_path
+          f[:path] = new_file_path
+        end
+      end
+
+      # 3. gsub all files
+      # gsub files after renaming
+      process_massive_gsub(old_file, new_file)
+
+      puts "RENAMED #{old_file.to_s.blue} to #{new_file.to_s.green}"
+    end
+
+    def process_massive_gsub(from, to)
+      puts "massive gsub #{from.to_s.blue} to #{to.to_s.green}"
+
+      @files.each do |f|
+        # must be proper mime before, so not needed to check
+        if f[:inside]
+          file_path = f[:path].clone
+
+          puts " open #{file_path.to_s.red}"
+
+          exists = File.exists?(file_path)
+          if exists
+            j = File.open(file_path)
+            s = j.read
+            j.close
+
+            s.gsub!(from, to)
+
+            j = File.open(file_path, "w")
+            j.puts(s)
+            j.close
+
+            f[:inside].each do |fi|
+              fi[:path].gsub!(from, to)
+            end
+
+            puts " done #{file_path.to_s.red}"
+          else
+            raise "file #{file_path} not found"
+          end
+        end
+      end
     end
 
   end
