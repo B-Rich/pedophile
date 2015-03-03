@@ -50,3 +50,4 @@ pkg
 .idea
 tmp
 spec/local_spec.rb
+files

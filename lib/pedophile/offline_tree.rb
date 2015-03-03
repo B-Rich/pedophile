@@ -9,7 +9,7 @@ module Pedophile
       @files = Array.new
     end
 
-    attr_reader :downloader, :path
+    attr_reader :downloader, :path, :files
 
     # Desctructive part
     def after_process
@@ -96,7 +96,8 @@ module Pedophile
 
     # TODO
     def should_add_path?(h)
-      return h[:is_file]
+      return true
+      #return h[:is_file]
     end
 
     def base_path
@@ -115,7 +116,7 @@ module Pedophile
         end
       end
 
-      process_massive_gsub("%3Fbody=1", "")
+      process_massive_gsub("%3Fbody=1", "", false)
     end
 
     def process_bad_filenames
@@ -160,12 +161,12 @@ module Pedophile
 
       # 3. gsub all files
       # gsub files after renaming
-      process_massive_gsub(old_file, new_file)
+      process_massive_gsub(old_file, new_file, true)
 
       puts "RENAMED #{old_file.to_s.blue} to #{new_file.to_s.green}"
     end
 
-    def process_massive_gsub(from, to)
+    def process_massive_gsub(from, to, check_paths = false)
       puts "massive gsub #{from.to_s.blue} to #{to.to_s.green}"
 
       @files.each do |f|
@@ -180,6 +181,8 @@ module Pedophile
             j = File.open(file_path)
             s = j.read
             j.close
+
+            # TODO check relative paths
 
             s.gsub!(from, to)
 
