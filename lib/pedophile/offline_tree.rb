@@ -182,15 +182,19 @@ module Pedophile
 
           puts " open #{file_path.to_s.red}"
 
+          #puts from, to, "*"*100
+
           # relative path fix
           if check_paths and FIX_RELATIVE_PATH
-            relative_file_path = File.dirname(file_path).gsub(self.path, "")
-            relative_file_path.gsub!(/^\//, '')
+            absolute_path = File.absolute_path(File.dirname(file_path))
+            first = Pathname.new(absolute_path)
 
-            first = Pathname.new(relative_file_path)
-            second = Pathname.new(to)
-            to = second.relative_path_from(first)
+            to_path = File.join(path, to)
+            second = Pathname.new(File.absolute_path(to_path))
+            to = second.relative_path_from(first).to_s
           end
+
+          #puts file_path, from, to, "*"*100
 
           exists = File.exists?(file_path)
           if exists
@@ -220,3 +224,12 @@ module Pedophile
 
   end
 end
+#
+#path = "tmp/site/localhost:3000"
+#file = "tmp/site/localhost:3000/markets/agro.html"
+#a = "tmp/site/localhost:3000/files/download_elements/files/000/000/003/original/2014-PERFORMANCE-AGRO.pdf"
+#from = "http://localhost:3000/system/download_elements/files/000/000/003/original/2014-PERFORMANCE-AGRO.pdf?1418210013"
+#
+#1. file -> directory -> absolute
+#2. a -> absolute
+#3. relative
