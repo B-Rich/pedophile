@@ -112,7 +112,7 @@ module Pedophile
     end
 
     # PROCESSING
-    def process_bad_suffix
+    def process_bad_suffix2
       @files.each do |f|
         old_file = f[:path]
         new_file = old_file.gsub(/\?body=1/, '')
@@ -125,6 +125,33 @@ module Pedophile
       process_massive_gsub("%3Fbody=1", "", false)
     end
 
+    def process_bad_suffix1
+      @files.each do |f|
+        old_file = f[:path]
+        new_file = old_file.gsub(/\?\d+/, '').gsub(/\%3F\d+/, '')
+
+        if not new_file == old_file
+          process_rename_file(old_file, new_file)
+        end
+
+        if f[:inside]
+          f[:inside].each do |fi|
+            old_file = fi[:path]
+            if File.exists?(old_file)
+              new_file = old_file.gsub(/\?\d+/, '').gsub(/\%3F\d+/, '')
+
+              if not new_file == old_file
+                process_rename_file(old_file, new_file)
+              end
+
+            end
+          end
+        end
+      end
+
+      process_massive_gsub(/\%3F\d+/, "", false)
+    end
+
     def process_bad_filenames
       @files.each do |f|
         old_file = f[:path]
@@ -133,8 +160,20 @@ module Pedophile
         if not new_file == old_file
           process_rename_file(old_file, new_file)
         end
-      end
 
+        if f[:inside]
+          f[:inside].each do |fi|
+            old_file = fi[:path]
+            if File.exists?(old_file)
+              new_file = old_file.gsub(/[^0-9A-Za-z.\-\/:]/, '_')
+
+              if not new_file == old_file
+                process_rename_file(old_file, new_file)
+              end
+            end
+          end
+        end
+      end
     end
 
     def process_rename_file(old_file_path, new_file_path)
@@ -159,9 +198,16 @@ module Pedophile
 
       # 2. rename in @files
       @files.each do |f|
-        puts "*"*100, f[:path], old_file_with_path
         if f[:path] == old_file_with_path
           f[:path] = new_file_path
+        end
+
+        if f[:inside]
+          f[:inside].each do |fi|
+            if fi[:path] == old_file_with_path
+              fi[:path] = new_file_path
+            end
+          end
         end
       end
 
@@ -182,8 +228,6 @@ module Pedophile
 
           puts " open #{file_path.to_s.red}"
 
-          #puts from, to, "*"*100
-
           # relative path fix
           if check_paths and FIX_RELATIVE_PATH
             absolute_path = File.absolute_path(File.dirname(file_path))
@@ -194,15 +238,11 @@ module Pedophile
             to = second.relative_path_from(first).to_s
           end
 
-          #puts file_path, from, to, "*"*100
-
           exists = File.exists?(file_path)
           if exists
             j = File.open(file_path)
             s = j.read
             j.close
-
-            # TODO check relative paths
 
             s.gsub!(from, to)
 
@@ -224,12 +264,3 @@ module Pedophile
 
   end
 end
-#
-#path = "tmp/site/localhost:3000"
-#file = "tmp/site/localhost:3000/markets/agro.html"
-#a = "tmp/site/localhost:3000/files/download_elements/files/000/000/003/original/2014-PERFORMANCE-AGRO.pdf"
-#from = "http://localhost:3000/system/download_elements/files/000/000/003/original/2014-PERFORMANCE-AGRO.pdf?1418210013"
-#
-#1. file -> directory -> absolute
-#2. a -> absolute
-#3. relative
