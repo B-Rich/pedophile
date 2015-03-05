@@ -10,7 +10,10 @@ module Pedophile
     TMP_OFFLINE_PATH = File.join(TMP_PATH, "site")
 
     WGET_PARAMS = "-v --random-wait --user-agent=Mozilla/5.0 --keep-session-cookies --load-cookies #{COOKIES_FILE_PATH} --save-cookies #{COOKIES_FILE_PATH}"
-    WGET_MIRROR_PARAMS = "--adjust-extension --mirror --page-requisites --convert-links"
+    # http://www.gnu.org/software/wget/manual/html_node/Download-Options.html
+    #WGET_RESTRICT_FILE_NAMES = "windows" # windows, ascii, unix
+    WGET_RESTRICT_FILE_NAMES = "unix"
+    WGET_MIRROR_PARAMS = "--adjust-extension --mirror --page-requisites --convert-links --restrict-file-names=#{WGET_RESTRICT_FILE_NAMES}"
 
     def initialize(downloader)
       @downloader = downloader

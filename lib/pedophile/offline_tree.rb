@@ -4,11 +4,13 @@ require 'pathname'
 module Pedophile
   class OfflineTree
     TMP_STRUCTURE_PATH = File.absolute_path(File.join(Wget::TMP_PATH, "files.yaml"))
-    FIX_RELATIVE_PATH = true
+    TMP_CHANGES_PATH = File.absolute_path(File.join(Wget::TMP_PATH, "changes.yaml"))
+    FIX_RELATIVE_PATH = false
 
     def initialize(downloader)
       @downloader = downloader
       @files = Array.new
+      @changes = Array.new
     end
 
     attr_reader :downloader, :files
@@ -60,6 +62,12 @@ module Pedophile
     def save_analyzed
       f = File.new(TMP_STRUCTURE_PATH, "w")
       f.puts @files.to_yaml
+      f.close
+    end
+
+    def save_changes
+      f = File.new(TMP_CHANGES_PATH, "w")
+      f.puts @changes.to_yaml
       f.close
     end
 
@@ -176,6 +184,10 @@ module Pedophile
       end
     end
 
+    #def process_bad_filenames_links
+    #  process_massive_gsub(/\%3F/, "_", false)
+    #end
+
     def process_rename_file(old_file_path, new_file_path)
       puts "rename from #{old_file_path.to_s.blue} to #{new_file_path.to_s.green}"
 
@@ -196,6 +208,9 @@ module Pedophile
       new_file_path = old_file_with_path.gsub(old_file, new_file)
       File.rename(old_file_with_path, new_file_path)
 
+      # internal log-like
+      @changes << { rename: { old: old_file_with_path, new: new_file_path } }
+
       # 2. rename in @files
       @files.each do |f|
         if f[:path] == old_file_with_path
@@ -214,6 +229,7 @@ module Pedophile
       # 3. gsub all files
       # gsub files after renaming
       process_massive_gsub(old_file, new_file, true)
+      process_massive_gsub(old_file.gsub("?", "%3F"), new_file, true)
 
       puts "RENAMED #{old_file.to_s.blue} to #{new_file.to_s.green}"
     end
@@ -227,6 +243,9 @@ module Pedophile
           file_path = f[:path].clone
 
           puts " open #{file_path.to_s.red}"
+
+          old_from = from.to_s
+          old_to = to.to_s
 
           # relative path fix
           if check_paths and FIX_RELATIVE_PATH
@@ -243,6 +262,11 @@ module Pedophile
             j = File.open(file_path)
             s = j.read
             j.close
+
+            # logs
+            if s.index(from)
+              @changes << { gsub: { old: from, new: to, file: file_path, old_from: old_from, old_to: old_to } }
+            end
 
             s.gsub!(from, to)
 
