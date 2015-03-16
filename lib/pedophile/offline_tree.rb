@@ -15,6 +15,23 @@ module Pedophile
 
     attr_reader :downloader, :files
 
+    def make_it_so
+      analyze
+      load_analyzed
+
+      process_bad_suffix1
+      process_bad_suffix2
+      process_bad_filenames
+      save_analyzed
+      save_changes
+    end
+
+    def zip(output_file = 'site.zip')
+      command = "cd #{Wget::TMP_OFFLINE_PATH}; zip -r #{output_file} #{self.downloader.wget.site_last_path}"
+      puts command
+      `#{command}`
+    end
+
     # Desctructive part
     def after_process
       load_processed

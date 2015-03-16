@@ -12,5 +12,14 @@ module Pedophile
     attr_reader :login, :wget, :offline_tree, :big_files
     attr_accessor :url
 
+    def make_it_so
+      wget.mirror
+      offline_tree.make_it_so
+    end
+
+    def zip(name = "site.zip")
+      offline_tree.zip(name)
+    end
+
   end
 end

@@ -47,8 +47,12 @@ module Pedophile
       prepare_tmp_path
     end
 
+    def site_last_path
+      (Dir.entries(Wget::TMP_OFFLINE_PATH) - ["..", "."]).first
+    end
+
     def offline_path
-      File.join(TMP_OFFLINE_PATH, (Dir.entries(Wget::TMP_OFFLINE_PATH) - ["..", "."]).first)
+      File.join(TMP_OFFLINE_PATH, site_last_path)
     end
 
   end
