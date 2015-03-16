@@ -11,8 +11,8 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib"]
   s.authors = ["Aleksander Kwiatkowski"]
-  s.date = "2015-03-03"
-  s.description = "download statis pages for offline usage."
+  s.date = "2015-03-16"
+  s.description = "download static pages for offline usage."
   s.email = "bobikx@poczta.fm"
   s.extra_rdoc_files = [
     "LICENSE.txt",
@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
     "Rakefile",
     "VERSION",
     "lib/pedophile.rb",
+    "lib/pedophile/big_files.rb",
     "lib/pedophile/downloader.rb",
     "lib/pedophile/login.rb",
     "lib/pedophile/offline_tree.rb",
@@ -34,7 +35,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/akwiatkowski/pedophile"
   s.licenses = ["LGPLv3"]
   s.rubygems_version = "2.2.2"
-  s.summary = "download statis pages for offline usage"
+  s.summary = "download static pages for offline usage"
 
   if s.respond_to? :specification_version then
     s.specification_version = 4
