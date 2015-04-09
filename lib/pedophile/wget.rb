@@ -3,7 +3,7 @@ require 'fileutils'
 
 module Pedophile
   class Wget
-    TMP_PATH = "tmp"
+    TMP_PATH = "offline_tmp"
     TMP_ABSOLUTE_PATH = File.absolute_path(TMP_PATH)
     TMP_FILE_PATH = File.absolute_path(File.join(TMP_PATH, "tmp.tmp"))
     COOKIES_FILE_PATH = File.absolute_path(File.join(TMP_PATH, "cookies.txt"))
