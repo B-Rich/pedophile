@@ -51,3 +51,4 @@ pkg
 tmp
 spec/local_spec.rb
 files
+offline_tmp
