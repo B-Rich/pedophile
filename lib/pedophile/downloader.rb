@@ -21,5 +21,9 @@ module Pedophile
       offline_tree.zip(name)
     end
 
+    def zip_with_custom_dir(output_path_zip, output_directory_name)
+      offline_tree.zip_with_custom_dir(output_path_zip, output_directory_name)
+    end
+
   end
 end

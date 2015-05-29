@@ -3,11 +3,12 @@ require 'fileutils'
 
 module Pedophile
   class Wget
+    TMP_SITE_DIRECTORY = "site"
     TMP_PATH = "offline_tmp"
     TMP_ABSOLUTE_PATH = File.absolute_path(TMP_PATH)
     TMP_FILE_PATH = File.absolute_path(File.join(TMP_PATH, "tmp.tmp"))
     COOKIES_FILE_PATH = File.absolute_path(File.join(TMP_PATH, "cookies.txt"))
-    TMP_OFFLINE_PATH = File.join(TMP_PATH, "site")
+    TMP_OFFLINE_PATH = File.join(TMP_PATH, TMP_SITE_DIRECTORY)
 
     WGET_PARAMS = "-v --random-wait --user-agent=Mozilla/5.0 --keep-session-cookies --load-cookies #{COOKIES_FILE_PATH} --save-cookies #{COOKIES_FILE_PATH}"
     # http://www.gnu.org/software/wget/manual/html_node/Download-Options.html

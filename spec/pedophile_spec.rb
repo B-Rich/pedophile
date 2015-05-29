@@ -34,7 +34,8 @@ describe Pedophile::Downloader do
 
     p.wget.clear!
     p.make_it_so
-    p.zip
+    #p.zip
+    p.zip_with_custom_dir("super_offline_site.zip", "site_#{Time.now.year}")
   end
 
 end

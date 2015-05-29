@@ -32,6 +32,14 @@ module Pedophile
       `#{command}`
     end
 
+    def zip_with_custom_dir(output_path_zip, output_directory_name)
+      command = "cd #{Wget::TMP_PATH}; cd #{Wget::TMP_SITE_DIRECTORY}; mv \"#{self.downloader.wget.site_last_path}\" \"#{output_directory_name}\";"
+      command += " zip -r #{output_path_zip} #{output_directory_name}"
+
+      puts command
+      `#{command}`
+    end
+
     # Desctructive part
     def after_process
       load_processed
