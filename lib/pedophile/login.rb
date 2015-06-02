@@ -16,7 +16,7 @@ module Pedophile
       string = @downloader.wget.download(url)
 
       token = nil
-      if string =~ /<input name=\"authenticity_token\" type=\"hidden\" value=\"([^"]+)\" \/>/
+      if string =~ /name=\"authenticity_token"\.* value=\"([^"]+)\"/
         token = $1
         puts "got devise token #{token.to_s.blue}"
       end
@@ -45,6 +45,7 @@ module Pedophile
         "user[password]" => password,
         "user[remember_me]" => 1
       }
+
 
       string = @downloader.wget.post(url, post_params)
       string
